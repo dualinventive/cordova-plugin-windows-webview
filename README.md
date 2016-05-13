@@ -55,11 +55,11 @@ If you want the webview to immediately navigate to your website add the followin
       </headers>
     </windows-webview>
 
-- __<url>__: The url to navigate to
+- __url__: The url to navigate to
 
-- __<http-method>__: The Http method with which to perform request
+- __http-method__: The Http method with which to perform request
 
-- __<header>__: A header to add to the request. You can add as many request headers as you like. To add multiple values to one header, add a header node with the same name and a different value.
+- __header__: A header to add to the request. You can add as many request headers as you like. To add multiple values to one header, add a header node with the same name and a different value.
 
 ## cordova.plugins.WindowsWebview.navigate
 
