@@ -1,0 +1,22 @@
+{
+  "name": "cordova-plugin-windows-webview",
+  "version": "0.1.0",
+  "description": "Cordova Windows Webview Plugin",
+  "cordova": {
+    "id": "cordova-plugin-windows-webview",
+    "platforms": [
+      "windows"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mac89/cordova-plugin-windows-webview.git"
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-windows",
+    "webview"
+  ],
+  "author": "Maarten Manders",
+  "license": "MIT"
+}

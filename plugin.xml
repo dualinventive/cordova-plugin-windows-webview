@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-windows-webview" 
+	version="0.1.0"
+	xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<name>WindowsWebview</name>
+	
+	<js-module name="WindowsWebview" src="www/WindowsWebview.js">
+		<clobbers target="cordova.plugins.WindowsWebview" />
+	</js-module>
+	
+	<platform name="windows">
+		<js-module name="WindowsWebviewProxy" src="src/windows/WindowsWebviewProxy.js">
+			<merges target="" />
+		</js-module>
+	</platform>
+	
+	 <uses-permission android:name="android.permission.INTERNET" />
+	
+</plugin>
