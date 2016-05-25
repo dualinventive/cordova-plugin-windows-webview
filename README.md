@@ -19,13 +19,32 @@ The order in which to include the cordova files is as follows:
 
 ### Plugin configuration
 
-In the cordova_plugins.js you will need to add the WindowsWebviewExec.js as a plugin:
+In the cordova_plugins.js you will need to add the WindowsWebviewExec.js as a plugin. **Important! This needs to be added to the top of the list**.
 
 	{
 		"file": "plugins/cordova-plugin-windows-webview/www/WindowsWebviewExec.js",
 		"id": "cordova-plugin-windows-webview.exec",
 		"runs": [
 		]
+	},
+
+_Note: Some plugins will not automatically work, including original cordova ones. Report any issues you might find._
+
+For the following plugins extra entries in the cordova_plugins.js are required, they need to be added underneath the WindowsWebviewExec.js entry.
+
+#### cordova-plugin-file
+
+	{
+		"file": "plugins/cordova-plugin-windows-webview/www/cordova-plugin-file/fileSystems.js",
+		"id": "cordova-plugin-windows-webview.fileSystems",
+		"pluginId": "cordova-plugin-windows-webview",
+		"runs": true
+	},
+	{
+		"file": "plugins/cordova-plugin-windows-webview/www/cordova-plugin-file/FileSystem.js",
+		"id": "cordova-plugin-windows-webview.FileSystem",
+		"pluginId": "cordova-plugin-windows-webview",
+		"runs": true
 	},
 
 You should remove all references to proxy files. For example for the device plugin you can remove this:
