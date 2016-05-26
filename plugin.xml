@@ -13,6 +13,10 @@
 		<js-module name="WindowsWebviewProxy" src="src/windows/WindowsWebviewProxy.js">
 			<merges target="" />
 		</js-module>
+		
+		<js-module name="prune" src="src/windows/JSON.prune.js">
+			<clobbers target="JSON.prune" />
+		</js-module>	
 	</platform>
 	
 	 <uses-permission android:name="android.permission.INTERNET" />
