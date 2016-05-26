@@ -36,7 +36,7 @@ For the following plugins extra entries in the cordova_plugins.js are required, 
 
 	{
 		"file": "plugins/cordova-plugin-windows-webview/www/cordova-plugin-file/fileSystems.js",
-		"id": "cordova-plugin-windows-webview.fileSystems",
+		"id": "cordova-plugin-file.fileSystems",
 		"pluginId": "cordova-plugin-windows-webview",
 		"runs": true
 	},
