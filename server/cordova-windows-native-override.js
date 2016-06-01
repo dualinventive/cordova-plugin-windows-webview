@@ -1,11 +1,36 @@
 (function () {
     window.onNativeReady = true;
 
+    var MS_APP_HOST_3 = 'MSAppHost/3.0', MS_APP_HOST_2 = 'MSAppHost/2.0';
+    var useMSAppHost3 = false, isWindows10 = navigator.appVersion.indexOf(MS_APP_HOST_3) !== -1;
+
+    // Check if it's Windows 10
+    if (isWindows10) {
+        // MSAppHost/3.0 needs to be replaced with MSAppHost/2.0 in order to avoid a fatal 'access violation' on Windows 10.
+        var appVersionMSAppHost3 = navigator.appVersion,
+            appVersionMSAppHost2 = appVersionMSAppHost3.replace(MS_APP_HOST_3, MS_APP_HOST_2),
+            appVersionProp = {
+                get: function () {
+                    if (useMSAppHost3) {
+                        return appVersionMSAppHost3;
+                    } else {
+                        return appVersionMSAppHost2;
+                    }
+                }
+            };
+
+        // Can only define a property once
+        Object.defineProperty(window.navigator, 'appVersion', appVersionProp);
+    }
+
     // Override WinJS
     window.WinJS = {
         Application: {
             addEventListener: addEventListener,
             start: function () {
+                if (isWindows10) {
+                    useMSAppHost3 = true;
+                }
             }
         }
     };
@@ -16,17 +41,6 @@
             WebUI: {
                 WebUIApplication: {
                     addEventListener: addEventListener
-                }
-            },
-            Core: {
-                SystemNavigationManager: {
-                    getForCurrentView: function () {
-                        return {
-                            addEventListener: addEventListener
-                        }
-                    }
-                },
-                AppViewBackButtonVisibility: {
                 }
             }
         }
