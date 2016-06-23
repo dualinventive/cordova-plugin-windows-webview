@@ -31,7 +31,8 @@
                 if (isWindows10) {
                     useMSAppHost3 = true;
                 }
-            }
+            },
+            onbackclick: null
         }
     };
 
@@ -46,6 +47,24 @@
         }
     };
 
+    var CordovaEvent;
+    if (typeof window.Event == "function"){
+        // IE Edge no longer supports createEvent
+        CordovaEvent = Event;
+    } else if (typeof window.CustomEvent !== "function") {
+        // IE does not support CustomEvent out of the box, so we need to add it
+        function CustomEvent(event, params) {
+            params = params || {bubbles: false, cancelable: false, detail: undefined};
+            var evt = document.createEvent('CustomEvent');
+            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+            return evt;
+        }
+
+        CustomEvent.prototype = window.Event.prototype;
+
+        CordovaEvent = CustomEvent;
+    }
+
     /**
      * Used to fire the native Windows events
      * @param args The arguments. Must contain the property 'eventName' and optionally the property 'args'.
@@ -57,10 +76,21 @@
         if (data.args) {
             detail = {detail: data.args};
         }
+        var event = new CordovaEvent(data.eventName, detail);
 
-        var event = new CustomEvent(data.eventName, detail);
         document.dispatchEvent(event);
     };
+
+    // Add listener for a back press
+    addEventListener('backrequested', function (evt) {
+        var onbackclick = WinJS.Application.onbackclick || function () {
+                return false;
+            };
+
+        if (onbackclick(evt) === false) {
+            cordova.exec(function () { }, function () { }, "WindowsWebview", "goBack", []);
+        }
+    });
 
     function addEventListener(type, listener, useCapture) {
         document.addEventListener(type, listener, useCapture);

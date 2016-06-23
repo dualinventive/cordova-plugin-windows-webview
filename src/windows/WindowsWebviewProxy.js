@@ -4,15 +4,15 @@ var argscheck = require('cordova/argscheck'),
     exec = require('cordova/exec'),
     cordova = require('cordova');
 
-var webview;
+var webview, backButtonListenerAdded = false;
 
 function navigate(success, fail, args) {
     /// <signature>
     /// <summary>Navigates the webview to the specified url, with the specified http method and optionally specified headers</summary>
-    ///	<param name='success' type='navigateSuccess'>
+    ///	<param name='success' type='Function'>
     ///     Ignore, does nothing
     /// </param>
-    /// <param name='fail' type='navigateFail'>
+    /// <param name='fail' type='Function'>
     ///     Ignore, does nothing
     /// </param>
     /// <param name='args' type='Array'>
@@ -37,6 +37,50 @@ function navigate(success, fail, args) {
 
     // Navigate the webview using the request message
     webview.navigateWithHttpRequestMessage(httpRequestMessage);
+}
+
+function goBack() {
+    /// <signature>
+    /// <summary>Traverses backward once in the navigation stack of the webview if possible</summary>
+    /// </signature>
+    if (webview.canGoBack) {
+        webview.goBack();
+    }
+}
+
+function interceptBackButton(success, fail, args) {
+    /// <signature>
+    /// <summary>Adds or remove a 'backbutton' event listener based on the specified argument</summary>
+    ///	<param name='success' type='Function'>
+    ///     Ignore, does nothing
+    /// </param>
+    /// <param name='fail' type='Function'>
+    ///     Ignore, does nothing
+    /// </param>
+    /// <param name='args' type='Array'>
+    ///     An array with the arguments. The first index in the array is a boolean indicating whether or not to intercept the back button click.
+    ///     Defaults to false.
+    /// </param>
+    /// </signature>
+    var intercept = args[0] || false;
+
+    if (intercept && backButtonListenerAdded === false) {
+        document.addEventListener("backbutton", fireBackRequestedEvent);
+        backButtonListenerAdded = true;
+    } else {
+        document.removeEventListener("backbutton", fireBackRequestedEvent);
+        backButtonListenerAdded = false;
+    }
+}
+
+function fireBackRequestedEvent(evt) {
+    /// <signature>
+    /// <summary>Fires the cordova event 'backrequested' on the webview</summary>
+    ///	<param name='evt' type='Event'>
+    ///     The back button clicked event
+    /// </param>
+    /// </signature>
+    invokeScript('fireCordovaEvent', { eventName: 'backrequested', args: { detail: evt } });
 }
 
 channel.onDeviceReady.subscribe(function () {
@@ -70,11 +114,6 @@ channel.onDeviceReady.subscribe(function () {
     document.addEventListener("activated", function (e) {
         // Fire the native event in the webview
         invokeScript('fireCordovaEvent', {eventName: 'activated', args: {detail: {type: e.type, arguments: e.args}}});
-    });
-
-    document.addEventListener("backbutton", function (evt) {
-        // Fire the native event in the webview
-        invokeScript('fireCordovaEvent', {eventName: 'backrequested', args: {detail: evt}});
     });
 
     // Add listener for webview sending messages
@@ -123,8 +162,22 @@ channel.onDeviceReady.subscribe(function () {
             } else {
                 utils.alert("[ERROR] The 'url' and/or 'http-method' node could not be found");
             }
+
+
         } else {
             utils.alert("[INFO] The 'windows-webview' node could not be found");
+        }
+
+        // Check if the interceptbackbutton preference has been set
+        var interceptBackButton = doc.getElementsByName("interceptbackbutton").item(0);
+        if (interceptBackButton) {
+            var value = interceptBackButton.getAttribute('value');
+
+            // Add 'backbutton' event listener if set to true
+            if (value == "true") {
+                document.addEventListener("backbutton", fireBackRequestedEvent);
+                backButtonListenerAdded = true;
+            }
         }
     });
     xhr.open("get", "../config.xml", true);
@@ -159,188 +212,32 @@ channel.onDeviceReady.subscribe(function () {
         return headers;
     }
 
-    function invokeScript(script, args) {
-        /// <signature>
-        /// <summary>Invokes the specified script (function) on the webview with the specified arguments</summary>
-        ///	<param name='success' type='string'>
-        ///     The script to execute. Note: Must be in the global scope.
-        /// </param>
-        /// <param name='fail' type='*'>
-        ///     The arguments to pass to the function. Must be JSON stringifiable. Note: Should be JSON parsed on the other end.
-        /// </param>
-        /// </signature>
-
-        // Only a single string can be passed as an argument
-        var invoke = webview.invokeScriptAsync(script, JSON.prune(args));
-        invoke.onerror = function (e) {
-            utils.alert("[ERROR] Error invoking webview function: " + script);
-        };
-
-        invoke.start();
-    }
 });
 
+function invokeScript(script, args) {
+    /// <signature>
+    /// <summary>Invokes the specified script (function) on the webview with the specified arguments</summary>
+    ///	<param name='success' type='string'>
+    ///     The script to execute. Note: Must be in the global scope.
+    /// </param>
+    /// <param name='fail' type='*'>
+    ///     The arguments to pass to the function. Must be JSON stringifiable. Note: Should be JSON parsed on the other end.
+    /// </param>
+    /// </signature>
+
+    // Only a single string can be passed as an argument
+    var invoke = webview.invokeScriptAsync(script, JSON.prune(args));
+    invoke.onerror = function (e) {
+        utils.alert("[ERROR] Error invoking webview function: " + script);
+    };
+
+    invoke.start();
+}
+
 module.exports = {
-    navigate: navigate
+    navigate: navigate,
+    goBack: goBack,
+    interceptBackButton: interceptBackButton
 };
 
 require("cordova/exec/proxy").add("WindowsWebview", module.exports);
-
-// JSON.prune : a function to stringify any object without overflow
-// two additional optional parameters :
-//   - the maximal depth (default : 6)
-//   - the maximal length of arrays (default : 50)
-// You can also pass an "options" object.
-// examples :
-//   var json = JSON.prune(window)
-//   var arr = Array.apply(0,Array(1000)); var json = JSON.prune(arr, 4, 20)
-//   var json = JSON.prune(window.location, {inheritedProperties:true})
-// Web site : http://dystroy.org/JSON.prune/
-// JSON.prune on github : https://github.com/Canop/JSON.prune
-// This was discussed here : http://stackoverflow.com/q/13861254/263525
-// The code is based on Douglas Crockford's code : https://github.com/douglascrockford/JSON-js/blob/master/json2.js
-// No effort was done to support old browsers. JSON.prune will fail on IE8.
-(function () {
-    'use strict';
-
-    var DEFAULT_MAX_DEPTH = 6;
-    var DEFAULT_ARRAY_MAX_LENGTH = 50;
-    var DEFAULT_PRUNED_VALUE = '"-pruned-"';
-    var seen; // Same variable used for all stringifications
-    var iterator; // either forEachEnumerableOwnProperty, forEachEnumerableProperty or forEachProperty
-
-    // iterates on enumerable own properties (default behavior)
-    var forEachEnumerableOwnProperty = function (obj, callback) {
-        for (var k in obj) {
-            if (Object.prototype.hasOwnProperty.call(obj, k)) callback(k);
-        }
-    };
-    // iterates on enumerable properties
-    var forEachEnumerableProperty = function (obj, callback) {
-        for (var k in obj) callback(k);
-    };
-    // iterates on properties, even non enumerable and inherited ones
-    // This is dangerous
-    var forEachProperty = function (obj, callback, excluded) {
-        if (obj == null) return;
-        excluded = excluded || {};
-        Object.getOwnPropertyNames(obj).forEach(function (k) {
-            if (!excluded[k]) {
-                callback(k);
-                excluded[k] = true;
-            }
-        });
-        forEachProperty(Object.getPrototypeOf(obj), callback, excluded);
-    };
-
-    Object.defineProperty(Date.prototype, "toPrunedJSON", {value: Date.prototype.toJSON});
-
-    var cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
-        meta = {	// table of character substitutions
-            '\b': '\\b',
-            '\t': '\\t',
-            '\n': '\\n',
-            '\f': '\\f',
-            '\r': '\\r',
-            '"': '\\"',
-            '\\': '\\\\'
-        };
-
-    function quote(string) {
-        escapable.lastIndex = 0;
-        return escapable.test(string) ? '"' + string.replace(escapable, function (a) {
-            var c = meta[a];
-            return typeof c === 'string'
-                ? c
-                : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
-        }) + '"' : '"' + string + '"';
-    }
-
-
-    var prune = function (value, depthDecr, arrayMaxLength) {
-        var prunedString = DEFAULT_PRUNED_VALUE;
-        var replacer;
-        if (typeof depthDecr == "object") {
-            var options = depthDecr;
-            depthDecr = options.depthDecr;
-            arrayMaxLength = options.arrayMaxLength;
-            iterator = options.iterator || forEachEnumerableOwnProperty;
-            if (options.allProperties) iterator = forEachProperty;
-            else if (options.inheritedProperties) iterator = forEachEnumerableProperty;
-            if ("prunedString" in options) {
-                prunedString = options.prunedString;
-            }
-            if (options.replacer) {
-                replacer = options.replacer;
-            }
-        } else {
-            iterator = forEachEnumerableOwnProperty;
-        }
-        seen = [];
-        depthDecr = depthDecr || DEFAULT_MAX_DEPTH;
-        arrayMaxLength = arrayMaxLength || DEFAULT_ARRAY_MAX_LENGTH;
-        function str(key, holder, depthDecr) {
-            var i, k, v, length, partial, value = holder[key];
-            if (value && typeof value === 'object' && typeof value.toPrunedJSON === 'function') {
-                value = value.toPrunedJSON(key);
-            }
-
-            switch (typeof value) {
-                case 'string':
-                    return quote(value);
-                case 'number':
-                    return isFinite(value) ? String(value) : 'null';
-                case 'boolean':
-                case 'null':
-                    return String(value);
-                case 'object':
-                    if (!value) {
-                        return 'null';
-                    }
-                    if (depthDecr <= 0 || seen.indexOf(value) !== -1) {
-                        if (replacer) {
-                            var replacement = replacer(value, prunedString, true);
-                            return replacement === undefined ? undefined : '' + replacement;
-                        }
-                        return prunedString;
-                    }
-                    seen.push(value);
-                    partial = [];
-                    if (Object.prototype.toString.apply(value) === '[object Array]') {
-                        length = Math.min(value.length, arrayMaxLength);
-                        for (i = 0; i < length; i += 1) {
-                            partial[i] = str(i, value, depthDecr - 1) || 'null';
-                        }
-                        v = '[' + partial.join(',') + ']';
-                        if (replacer && value.length > arrayMaxLength) return replacer(value, v, false);
-                        return v;
-                    }
-                    iterator(value, function (k) {
-                        try {
-                            v = str(k, value, depthDecr - 1);
-                            if (v) partial.push(quote(k) + ':' + v);
-                        } catch (e) {
-                            // this try/catch due to forbidden accessors on some objects
-                        }
-                    });
-                    return '{' + partial.join(',') + '}';
-                case 'function':
-                case 'undefined':
-                    return replacer ? replacer(value, undefined, false) : undefined;
-            }
-        }
-
-        return str('', {'': value}, depthDecr);
-    };
-
-    prune.log = function () {
-        console.log.apply(console, Array.prototype.map.call(arguments, function (v) {
-            return JSON.parse(JSON.prune(v));
-        }));
-    };
-    prune.forEachProperty = forEachProperty; // you might want to also assign it to Object.forEachProperty
-
-    if (typeof module !== "undefined") module.exports = prune;
-    else JSON.prune = prune;
-}());

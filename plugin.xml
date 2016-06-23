@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin id="cordova-plugin-windows-webview" 
-	version="0.1.1"
-	xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+	version="0.2.0"
+	xmlns="http://apache.org/cordova/ns/plugins/1.0">
 	
 	<name>WindowsWebview</name>
 	
@@ -16,9 +16,7 @@
 		
 		<js-module name="prune" src="src/windows/JSON.prune.js">
 			<clobbers target="JSON.prune" />
-		</js-module>	
+		</js-module>
 	</platform>
-	
-	 <uses-permission android:name="android.permission.INTERNET" />
 	
 </plugin>

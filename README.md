@@ -24,7 +24,9 @@ In the cordova_plugins.js you will need to add the WindowsWebviewExec.js as a pl
 	{
 		"file": "plugins/cordova-plugin-windows-webview/www/WindowsWebviewExec.js",
 		"id": "cordova-plugin-windows-webview.exec",
-		"runs": [
+		"clobbers": [
+			"cordova.exec",
+			'Cordova.exec'
 		]
 	},
 
@@ -72,6 +74,7 @@ If you want the webview to immediately navigate to your website add the followin
       <headers>
         <header name="cache-control" value="no-store" />
       </headers>
+      <preference name="interceptbackbutton" value="false"/>
     </windows-webview>
 
 - __url__: The url to navigate to
@@ -79,6 +82,10 @@ If you want the webview to immediately navigate to your website add the followin
 - __http-method__: The Http method with which to perform request
 
 - __header__: A header to add to the request. You can add as many request headers as you like. To add multiple values to one header, add a header node with the same name and a different value.
+
+- __preferences__:
+ 	- __interceptbackbutton__: {boolean} Indicates the back button press should be intercepted. </br>
+ 	Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
 
 ## cordova.plugins.WindowsWebview.navigate
 
@@ -99,6 +106,20 @@ Navigates the webview to the specified url.
 	- __value__: Value to append to the header (ex. no-cache)}
 
 	Note: To add multiple values to one header, add a header object with the same name and a different value to the array.
+
+## cordova.plugins.WindowsWebview.goBack
+
+Traverses backward once in the navigation stack of the webview if possible.
+
+	cordova.plugins.WindowsWebview.goBack();
+
+## cordova.plugins.WindowsWebview.interceptBackButton
+
+Indicates whether or not the back button press should be intercepted
+
+	cordova.plugins.WindowsWebview.interceptBackButton(intercept);
+
+- __intercept__: {boolean} Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
 
 ## Supported Platforms
 
