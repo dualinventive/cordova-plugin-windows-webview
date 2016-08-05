@@ -28,6 +28,10 @@
         Application: {
             addEventListener: addEventListener,
             start: function () {
+                addEventListener('resuming', function () {
+                    cordova.fireDocumentEvent('resume', null, true);
+                }, true);
+
                 if (isWindows10) {
                     useMSAppHost3 = true;
                 }
@@ -41,14 +45,15 @@
         UI: {
             WebUI: {
                 WebUIApplication: {
-                    addEventListener: addEventListener
+                    addEventListener: function () {
+                    }
                 }
             }
         }
     };
 
     var CordovaEvent;
-    if (typeof window.Event == "function"){
+    if (typeof window.Event == "function") {
         // IE Edge no longer supports createEvent
         CordovaEvent = Event;
     } else if (typeof window.CustomEvent !== "function") {
@@ -88,7 +93,9 @@
             };
 
         if (onbackclick(evt) === false) {
-            cordova.exec(function () { }, function () { }, "WindowsWebview", "goBack", []);
+            cordova.exec(function () {
+            }, function () {
+            }, "WindowsWebview", "goBack", []);
         }
     });
 
