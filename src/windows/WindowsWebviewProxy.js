@@ -67,7 +67,7 @@ function interceptBackButton(success, fail, args) {
     if (intercept && backButtonListenerAdded === false) {
         document.addEventListener("backbutton", fireBackRequestedEvent);
         backButtonListenerAdded = true;
-    } else {
+    } else if (intercept === false && backButtonListenerAdded) {
         document.removeEventListener("backbutton", fireBackRequestedEvent);
         backButtonListenerAdded = false;
     }
