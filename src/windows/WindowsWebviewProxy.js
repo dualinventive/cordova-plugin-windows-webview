@@ -35,6 +35,11 @@ function navigate(success, fail, args) {
         })
     }
 
+    // Check if it needs to be refreshed
+    if (args[3]) {
+        webview.addEventListener('MSWebViewContentLoading', refresh);
+    }
+
     // Navigate the webview using the request message
     webview.navigateWithHttpRequestMessage(httpRequestMessage);
 }
@@ -46,6 +51,15 @@ function goBack() {
     if (webview.canGoBack) {
         webview.goBack();
     }
+}
+
+function refresh() {
+    /// <signature>
+    /// <summary>Refreshes the webview in order to clear its cache</summary>
+    /// </signature>
+    webview.removeEventListener('MSWebViewContentLoading', refresh);
+
+    webview.refresh();
 }
 
 function interceptBackButton(success, fail, args) {
@@ -70,6 +84,52 @@ function interceptBackButton(success, fail, args) {
     } else if (intercept === false && backButtonListenerAdded) {
         document.removeEventListener("backbutton", fireBackRequestedEvent);
         backButtonListenerAdded = false;
+    }
+}
+
+function onNavigation(success, fail, args) {
+    /// <signature>
+    /// <summary>Executes the success callback when the webview has successfuly navigated. The fail callback is
+    // executed when the webview fails for whatever reason.</summary> /	<param name='success' type='Function'> /
+    // The success callback / </param> / <param name='fail' type='Function'> /     The fail callback / </param> /
+    // <param name='args' type='Array'> /     An array with the arguments. The first index in the array indicates the
+    // success or fail callback should only be executed once. / </param> / </signature>
+
+    // Check if the webview exists
+    if (webview) {
+        addListeners();
+    } else {
+        // Add listeners when it is ready
+        document.addEventListener('webviewready', addListeners);
+    }
+
+    function addListeners() {
+        var once = args[0];
+
+        webview.addEventListener('MSWebViewNavigationCompleted', onSuccess);
+        webview.addEventListener('MSWebViewUnsupportedUriSchemeIdentified', onFail);
+        webview.addEventListener('MSWebViewUnviewableContentIdentified', onFail);
+
+        function onSuccess() {
+            onFinished(success);
+        }
+
+        function onFail() {
+            onFinished(fail);
+        }
+
+        function onFinished(callback) {
+            if (typeof callback == 'function') {
+                callback();
+            }
+
+            // Remove event listeners if they should fire only once
+            if (once) {
+                webview.removeEventListener('MSWebViewNavigationCompleted', onSuccess);
+                webview.removeEventListener('MSWebViewUnsupportedUriSchemeIdentified', onFail);
+                webview.removeEventListener('MSWebViewUnviewableContentIdentified', onFail);
+            }
+        }
     }
 }
 
@@ -155,10 +215,13 @@ channel.onDeviceReady.subscribe(function () {
                     httpMethod = httpMethodNode.textContent,
                     headers = parseHeaders(windowsWebviewNode);
 
+                var refresh = doc.getElementsByName("refresh").item(0),
+                    refreshValue = refresh.getAttribute('value') == "true";
+
                 // Navigate to the configured url with the configured http method and headers
                 navigate(function () {
                 }, function () {
-                }, [url, httpMethod, headers]);
+                }, [url, httpMethod, headers, refreshValue]);
             } else {
                 utils.alert("[ERROR] The 'url' and/or 'http-method' node could not be found");
             }
@@ -212,6 +275,8 @@ channel.onDeviceReady.subscribe(function () {
         return headers;
     }
 
+    // Fire event to indicate the webview is ready
+    document.dispatchEvent(createEvent('webviewready'));
 });
 
 function invokeScript(script, args) {
@@ -234,10 +299,34 @@ function invokeScript(script, args) {
     invoke.start();
 }
 
+// Copied from cordova.js
+function createEvent(type, data) {
+    /// <signature>
+    /// <summary>Creates an event with the provided type and data</summary>
+    ///	<param name='type' type='string'>
+    ///     The type of event
+    /// </param>
+    /// <param name='data' type='{}'>
+    ///    The data to pass with the event
+    /// </param>
+    /// </signature>
+    var event = document.createEvent('Events');
+    event.initEvent(type, false, false);
+    if (data) {
+        for (var i in data) {
+            if (data.hasOwnProperty(i)) {
+                event[i] = data[i];
+            }
+        }
+    }
+    return event;
+}
+
 module.exports = {
     navigate: navigate,
     goBack: goBack,
-    interceptBackButton: interceptBackButton
+    interceptBackButton: interceptBackButton,
+    onNavigation: onNavigation
 };
 
 require("cordova/exec/proxy").add("WindowsWebview", module.exports);
