@@ -75,6 +75,7 @@ If you want the webview to immediately navigate to your website add the followin
         <header name="cache-control" value="no-store" />
       </headers>
       <preference name="interceptbackbutton" value="false"/>
+      <preference name="refresh" value="false"/>
     </windows-webview>
 
 - __url__: The url to navigate to
@@ -86,12 +87,14 @@ If you want the webview to immediately navigate to your website add the followin
 - __preferences__:
  	- __interceptbackbutton__: {boolean} Indicates the back button press should be intercepted. </br>
  	Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
+ 	- __refresh__: {boolean} Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url. </br>
+ 	Defaults to **false**. 	
 
 ## cordova.plugins.WindowsWebview.navigate
 
 Navigates the webview to the specified url.
 
-	cordova.plugins.WindowsWebview.navigate(url, httpMethod, headers);
+	cordova.plugins.WindowsWebview.navigate(url, httpMethod, headers, refresh);
 
 - __url__: {string} The url to navigate to
 
@@ -107,6 +110,8 @@ Navigates the webview to the specified url.
 
 	Note: To add multiple values to one header, add a header object with the same name and a different value to the array.
 
+- __refresh__: {boolean} Optional. Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url.
+
 ## cordova.plugins.WindowsWebview.goBack
 
 Traverses backward once in the navigation stack of the webview if possible.
@@ -120,6 +125,19 @@ Indicates whether or not the back button press should be intercepted
 	cordova.plugins.WindowsWebview.interceptBackButton(intercept);
 
 - __intercept__: {boolean} Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
+
+## cordova.plugins.WindowsWebview.onNavigation
+
+Executes the provided callbacks when the webview navigates successfully or fails. </br>
+Note: This is only useful in native scripts, scripts executed in the webview will never be able to listen to webview events.
+
+	cordova.plugins.WindowsWebview.onNavigation(success, fail, once);
+
+- __success__: {Function} Optional. The callback function to execute when the webview successfully navigated.
+
+- __fail__: {Function} Optional. The callback function to execute when the webview fails to navigate for whatever reason.
+
+- __once__: {boolean} Optional. Indicates the provided callback functions should only be executed once.
 
 ## Supported Platforms
 
