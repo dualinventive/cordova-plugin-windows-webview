@@ -66,6 +66,15 @@ You can also remove the actual proxy file located in the plugins directory. In t
 
 ## Client configuration
 
+__Important!__
+
+The website you want to navigate to and use cordova with __must__ be included in the cordova white-list or manually in the ApplicationContentUriRules.
+Your website will not be able to communicate with the native cordova otherwise.
+
+You will receive a warning like this if it is not included in the white-list/ApplicationContentUriRules:
+
+	Unable to receive a ScriptNotify event from: 'https://mywebsite.com'. The website attempted to send a ScriptNotify event to the app from a WebView URI that is not included in the ApplicationContentUriRules ...
+
 If you want the webview to immediately navigate to your website add the following to the config.xml of your project:
 
     <windows-webview>
