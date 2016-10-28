@@ -83,8 +83,10 @@ If you want the webview to immediately navigate to your website add the followin
       <headers>
         <header name="cache-control" value="no-store" />
       </headers>
+      <refresh>false</refresh>
+      <fingerprint>2B 24 1B E0 D0 8C A6 41 68 C2 BB E3 60 0A DF 55 1A FC A8 45</fingerprint>
+      <max-connection-attempts>3</max-connection-attempts>
       <preference name="interceptbackbutton" value="false"/>
-      <preference name="refresh" value="false"/>
     </windows-webview>
 
 - __url__: The url to navigate to
@@ -93,17 +95,24 @@ If you want the webview to immediately navigate to your website add the followin
 
 - __header__: A header to add to the request. You can add as many request headers as you like. To add multiple values to one header, add a header node with the same name and a different value.
 
+- __refresh__: {boolean} Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url. </br>
+ 	Defaults to **false**. 	
+
+- __fingerprint__: The SHA fingerprint used to check the validity of the SSL certificate of the url. Used to prevent 'Man in the Middle' attacks. For more information refer to: [SSLCertificateChecker-PhoneGap-Plugin](https://github.com/EddyVerbruggen/SSLCertificateChecker-PhoneGap-Plugin) </br>
+    Defaults to **null**. No validation is performed. 
+    
+- __max-connection-attempts__: The maximum number of connection attempts made checking the validity of the SSL certificate before failing. </br>
+    Defaults to **null**. Only 1 attempt is made. 
+
 - __preferences__:
  	- __interceptbackbutton__: {boolean} Indicates the back button press should be intercepted. </br>
  	Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
- 	- __refresh__: {boolean} Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url. </br>
- 	Defaults to **false**. 	
 
 ## cordova.plugins.WindowsWebview.navigate
 
 Navigates the webview to the specified url.
 
-	cordova.plugins.WindowsWebview.navigate(url, httpMethod, headers, refresh);
+	cordova.plugins.WindowsWebview.navigate(url, httpMethod, headers, refresh, fingerprint, maxConnectionAttempts, success, fail);
 
 - __url__: {string} The url to navigate to
 
@@ -120,6 +129,14 @@ Navigates the webview to the specified url.
 	Note: To add multiple values to one header, add a header object with the same name and a different value to the array.
 
 - __refresh__: {boolean} Optional. Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url.
+
+- __fingerprint__: {string} Optional. The SHA fingerprint used to check the validity of the SSL certificate of the url. Used to prevent 'Man in the Middle' attacks. For more information refer to: [SSLCertificateChecker-PhoneGap-Plugin](https://github.com/EddyVerbruggen/SSLCertificateChecker-PhoneGap-Plugin)
+
+- __max-connection-attempts__: {number: 1} Optional. The maximum number of connection attempts made checking the validity of the SSL certificate before failing.
+
+- __success__: {Function} Optional. The success callback, called when the webview has navigated successfully. Only useful in native scripts.
+
+- __fail__: {Function(message)} Optional. The fail callback, called when the webview has failed to navigate or when using the fingerprint option and validation fails. Only useful in native scripts.
 
 ## cordova.plugins.WindowsWebview.goBack
 
@@ -152,3 +169,6 @@ Note: This is only useful in native scripts, scripts executed in the webview wi
 
 - Windows
 
+## Credits
+
+Incorporates the SSLCertificateChecker-PhoneGap-Plugin by [Eddy Verbruggen](https://github.com/EddyVerbruggen)

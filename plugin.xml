@@ -4,6 +4,10 @@
         xmlns="http://apache.org/cordova/ns/plugins/1.0">
 	
 	<name>WindowsWebview</name>
+    <description>Cordova Windows Webview Plugin</description>
+    <license>MIT</license>
+
+    <dependency id="cordova-plugin-sslcertificatechecker" version="^5.0.0"/>
 	
 	<js-module name="WindowsWebview" src="www/WindowsWebview.js">
 		<clobbers target="cordova.plugins.WindowsWebview" />

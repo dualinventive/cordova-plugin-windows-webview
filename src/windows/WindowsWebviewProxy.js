@@ -21,14 +21,21 @@ function navigate(success, fail, args) {
     /// </param>
     /// </signature>
 
-    var uri = new Windows.Foundation.Uri(args[0]),
-        httpMethod = Windows.Web.Http.HttpMethod[args[1].toLowerCase()];
+    // Arguments
+    var url = args[0],
+        httpMethodName = args[1],
+        headers = args[2],
+        needsToBeRefreshed = args[3],
+        fingerprint = args[4],
+        maxConnectionAttempts = args[5];
+
+    var uri = new Windows.Foundation.Uri(url),
+        httpMethod = Windows.Web.Http.HttpMethod[httpMethodName.toLowerCase()];
 
     var httpRequestMessage = new Windows.Web.Http.HttpRequestMessage(httpMethod, uri);
 
     // Check to see if headers are provided
-    if (args[2] !== undefined && args[2] instanceof Array) {
-        var headers = args[2];
+    if (headers !== undefined && headers instanceof Array) {
         // Add the headers to the request message
         headers.forEach(function (header) {
             httpRequestMessage.headers.append(header.name, header.value);
@@ -36,12 +43,26 @@ function navigate(success, fail, args) {
     }
 
     // Check if it needs to be refreshed
-    if (args[3]) {
+    if (needsToBeRefreshed) {
         webview.addEventListener('MSWebViewContentLoading', refresh);
     }
 
-    // Navigate the webview using the request message
-    webview.navigateWithHttpRequestMessage(httpRequestMessage);
+    // Check if a fingerprint has been provided
+    if (fingerprint) {
+        checkSSLCertificate(url, fingerprint, maxConnectionAttempts, function () {
+            // Fire callbacks on the webview navigation events
+            onNavigation(success, fail, [true]);
+
+            // Navigate the webview using the request message
+            webview.navigateWithHttpRequestMessage(httpRequestMessage);
+        }, fail);
+    } else {
+        // Fire callbacks on the webview navigation events
+        onNavigation(success, fail, [true]);
+
+        // Navigate the webview using the request message
+        webview.navigateWithHttpRequestMessage(httpRequestMessage);
+    }
 }
 
 function goBack() {
@@ -90,10 +111,18 @@ function interceptBackButton(success, fail, args) {
 function onNavigation(success, fail, args) {
     /// <signature>
     /// <summary>Executes the success callback when the webview has successfuly navigated. The fail callback is
-    // executed when the webview fails for whatever reason.</summary> /	<param name='success' type='Function'> /
-    // The success callback / </param> / <param name='fail' type='Function'> /     The fail callback / </param> /
-    // <param name='args' type='Array'> /     An array with the arguments. The first index in the array indicates the
-    // success or fail callback should only be executed once. / </param> / </signature>
+    ///     executed when the webview fails for whatever reason.
+    /// </summary>
+    /// <param name='success' type='Function'>
+    ///     The success callback
+    /// </param>
+    /// <param name='fail' type='Function'>
+    ///     The fail callback
+    /// </param>
+    /// <param name='args' type='Array'>
+    ///     An array with the arguments. The first index in the array indicates the success or fail callback should only be executed once.
+    /// </param>
+    /// </signature>
 
     // Check if the webview exists
     if (webview) {
@@ -115,12 +144,12 @@ function onNavigation(success, fail, args) {
         }
 
         function onFail() {
-            onFinished(fail);
+            onFinished(fail, 'WEBVIEW_NAVIGATION_FAILED');
         }
 
-        function onFinished(callback) {
+        function onFinished(callback, message) {
             if (typeof callback == 'function') {
-                callback();
+                callback(message);
             }
 
             // Remove event listeners if they should fire only once
@@ -131,6 +160,56 @@ function onNavigation(success, fail, args) {
             }
         }
     }
+}
+
+function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, fail) {
+    /// <signature>
+    /// <summary>Checks the SSL certificate of the provided url against the provided fingerprint</summary>
+    ///	<param name='url' type='String'>
+    ///     The url whose certificate to check
+    /// </param>
+    ///	<param name='fingerprint' type='String'>
+    ///     The SHA fingerprint to check against
+    /// </param>
+    ///	<param name='nrOfConnectionAttempts' type='Number'>
+    ///     The number of connection attempts to make. If left empty it will fail after 1 attempt.
+    /// </param>
+    /// <param name='success' type='Function'>
+    ///     The success callback
+    /// </param>
+    /// <param name='fail' type='Function'>
+    ///     The fail callback
+    /// </param>
+    /// </signature>
+    window.plugins.sslCertificateChecker.check(
+        success,
+        function (message) {
+            if (message == "CONNECTION_NOT_SECURE") {
+                // There is likely a man in the middle attack going on, be careful!
+                if (typeof fail == 'function') {
+                    fail(message);
+                }
+            } else if (message.indexOf("CONNECTION_FAILED") > -1) {
+                // Check if nr of connection attemps is a number
+                if (isNaN(nrOfConnectionAttempts)) {
+                    fail(message);
+                } else {
+                    // Made an attempt so decrease the number left to do
+                    --nrOfConnectionAttempts;
+
+                    if (nrOfConnectionAttempts > 0) {
+                        // Attempt to connect again
+                        setTimeout(function () {
+                            checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, fail);
+                        }, 2000);
+                    } else {
+                        fail(message);
+                    }
+                }
+            }
+        },
+        url,
+        fingerprint);
 }
 
 function fireBackRequestedEvent(evt) {
@@ -211,22 +290,25 @@ channel.onDeviceReady.subscribe(function () {
             var urlNode = windowsWebviewNode.getElementsByTagName("url").item(0);
             var httpMethodNode = windowsWebviewNode.getElementsByTagName("http-method").item(0);
             if (urlNode && httpMethodNode) {
-                var url = urlNode.textContent,
-                    httpMethod = httpMethodNode.textContent,
-                    headers = parseHeaders(windowsWebviewNode);
+                var navigateArgs = [urlNode.textContent, httpMethodNode.textContent, parseHeaders(windowsWebviewNode)];
 
-                var refresh = doc.getElementsByName("refresh").item(0),
-                    refreshValue = refresh.getAttribute('value') == "true";
+                // Get refresh preference
+                var refreshNode = windowsWebviewNode.getElementsByTagName("refresh").item(0);
+                navigateArgs.push(refreshNode ? refreshNode.textContent : false);
+
+                // Get fingerprint
+                var fingerprintNode = windowsWebviewNode.getElementsByTagName("fingerprint").item(0);
+                navigateArgs.push(fingerprintNode ? fingerprintNode.textContent : null);
+
+                // Get max connection attempts preference
+                var maxConnectionAttemptsNode = windowsWebviewNode.getElementsByTagName("max-connection-attempts").item(0);
+                navigateArgs.push(maxConnectionAttemptsNode ? maxConnectionAttemptsNode.textContent : null);
 
                 // Navigate to the configured url with the configured http method and headers
-                navigate(function () {
-                }, function () {
-                }, [url, httpMethod, headers, refreshValue]);
+                navigate(null, null, navigateArgs);
             } else {
                 utils.alert("[ERROR] The 'url' and/or 'http-method' node could not be found");
             }
-
-
         } else {
             utils.alert("[INFO] The 'windows-webview' node could not be found");
         }

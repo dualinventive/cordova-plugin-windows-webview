@@ -17,6 +17,9 @@
     "cordova-windows",
     "webview"
   ],
+  "peerDependencies": {
+    "cordova-plugin-sslcertificatechecker": "^5.0.0"
+  },
   "author": "Maarten Manders",
   "license": "MIT"
 }
