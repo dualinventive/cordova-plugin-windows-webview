@@ -102,7 +102,7 @@ If you want the webview to immediately navigate to your website add the followin
     Defaults to **null**. No validation is performed. 
     
 - __max-connection-attempts__: The maximum number of connection attempts made checking the validity of the SSL certificate before failing. </br>
-    Defaults to **null**. Only 1 attempt is made. 
+    Defaults to **1**. Only 1 attempt is made. 
 
 - __preferences__:
  	- __interceptbackbutton__: {boolean} Indicates the back button press should be intercepted. </br>
