@@ -192,7 +192,9 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
             } else if (message.indexOf("CONNECTION_FAILED") > -1) {
                 // Check if nr of connection attemps is a number
                 if (isNaN(nrOfConnectionAttempts)) {
-                    fail(message);
+                    if (typeof fail == 'function') {
+                        fail(message);
+                    }
                 } else {
                     // Made an attempt so decrease the number left to do
                     --nrOfConnectionAttempts;
@@ -203,13 +205,83 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
                             checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, fail);
                         }, 2000);
                     } else {
-                        fail(message);
+                        if (typeof fail == 'function') {
+                            fail(message);
+                        }
                     }
                 }
             }
         },
         url,
         fingerprint);
+}
+
+function handlePermissionRequest(success, fail, args) {
+    /// <signature>
+    /// <summary>
+    ///     Handles the permission request  with the provided id by allowing or denying it depending on the provided
+    // 'allow' argument / </summary> / <param name='success' type='Function'> /     The success callback / </param> /
+    // <param name='fail' type='Function'> /     The fail callback / </param> / <param name='args' type='Array'> /
+    // An array with the arguments. The first index in the array is the id of the permission request. The second index
+    // is a boolean that indicates the request is to be allowed or denied. / </param> / </signature>
+
+    var id = args[0],
+        allow = args[1];
+
+    var permissionRequest = webview.getDeferredPermissionRequestById(id);
+    if (permissionRequest) {
+        if (allow) {
+            permissionRequest.allow();
+        } else {
+            permissionRequest.deny();
+        }
+
+        if (typeof success == 'function') {
+            success();
+        }
+    } else {
+        if (typeof fail == 'function') {
+            fail();
+        }
+    }
+}
+
+function getPermissionRequests(success, fail) {
+    /// <signature>
+    /// <summary>
+    ///     Returns all the outstanding permission requests
+    /// </summary>
+    /// <param name='success' type='Function'>
+    ///     The success callback
+    /// </param>
+    /// <param name='fail' type='Function'>
+    ///     The fail callback
+    /// </param>
+    /// </signature>
+    var permissionRequests = webview.getDeferredPermissionRequests();
+
+    if (permissionRequests) {
+        if (typeof success == 'function') {
+            var plainPermissionRequests = [];
+
+            for (var p = 0; p < permissionRequests.length; p++) {
+                var permissionRequest = permissionRequests[p];
+                var plainPermissionRequest = {
+                    id: permissionRequest.id,
+                    type: permissionRequest.type,
+                    uri: permissionRequest.uri
+                };
+
+                plainPermissionRequests.push(plainPermissionRequest);
+            }
+
+            success(plainPermissionRequests);
+        }
+    } else {
+        if (typeof fail == 'function') {
+            fail();
+        }
+    }
 }
 
 function fireBackRequestedEvent(evt) {
@@ -225,7 +297,23 @@ function fireBackRequestedEvent(evt) {
 channel.onDeviceReady.subscribe(function () {
     // Create and add the webview
     webview = document.createElement('x-ms-webview');
+    webview.getDeferredPermissionRequestById
     webview.style.cssText = 'position: absolute; top:0; left:0; width:100%; height:100%;';
+
+    webview.addEventListener("MSWebViewPermissionRequested", function (e) {
+        // Always defer permission requests
+        e.permissionRequest.defer();
+
+        // Create plain object of the permission request
+        var plainPermissionRequest = {
+            id: e.permissionRequest.id,
+            type: e.permissionRequest.type,
+            uri: e.permissionRequest.uri
+        };
+
+        // Fire the native event in the webview
+        invokeScript('fireCordovaEvent', {eventName: 'wwPermissionRequested', args: plainPermissionRequest});
+    });
 
     document.body.appendChild(webview);
 
@@ -408,7 +496,9 @@ module.exports = {
     navigate: navigate,
     goBack: goBack,
     interceptBackButton: interceptBackButton,
-    onNavigation: onNavigation
+    onNavigation: onNavigation,
+    handlePermissionRequest: handlePermissionRequest,
+    getPermissionRequests: getPermissionRequests
 };
 
 require("cordova/exec/proxy").add("WindowsWebview", module.exports);

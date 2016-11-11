@@ -52,23 +52,15 @@
         }
     };
 
-    var CordovaEvent;
-    if (typeof window.Event == "function") {
-        // IE Edge no longer supports createEvent
-        CordovaEvent = Event;
-    } else if (typeof window.CustomEvent !== "function") {
-        // IE does not support CustomEvent out of the box, so we need to add it
-        function CustomEvent(event, params) {
-            params = params || {bubbles: false, cancelable: false, detail: undefined};
-            var evt = document.createEvent('CustomEvent');
-            evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
-            return evt;
-        }
-
-        CustomEvent.prototype = window.Event.prototype;
-
-        CordovaEvent = CustomEvent;
+    // IE does not support CustomEvent out of the box, so we need to add it
+    function CordovaEvent(event, params) {
+        params = params || {bubbles: false, cancelable: false, detail: undefined};
+        var evt = document.createEvent('CustomEvent');
+        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+        return evt;
     }
+
+    CordovaEvent.prototype = window.Event.prototype;
 
     /**
      * Used to fire the native Windows events
