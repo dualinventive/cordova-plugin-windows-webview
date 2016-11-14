@@ -219,11 +219,18 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
 function handlePermissionRequest(success, fail, args) {
     /// <signature>
     /// <summary>
-    ///     Handles the permission request  with the provided id by allowing or denying it depending on the provided
-    // 'allow' argument / </summary> / <param name='success' type='Function'> /     The success callback / </param> /
-    // <param name='fail' type='Function'> /     The fail callback / </param> / <param name='args' type='Array'> /
-    // An array with the arguments. The first index in the array is the id of the permission request. The second index
-    // is a boolean that indicates the request is to be allowed or denied. / </param> / </signature>
+    ///     Handles the permission request  with the provided id by allowing or denying it depending on the provided 'allow' argument
+    /// </summary>
+    /// <param name='success' type='Function'>
+    ///     The success callback
+    /// </param>
+    /// <param name='fail' type='Function'>
+    ///     The fail callback
+    /// </param>
+    /// <param name='args' type='Array'>
+    ///     An array with the arguments. The first index in the array is the id of the permission request. The second index is a boolean that indicates the request is to be allowed or denied.
+    /// </param>
+    /// </signature>
 
     var id = args[0],
         allow = args[1];
@@ -297,7 +304,6 @@ function fireBackRequestedEvent(evt) {
 channel.onDeviceReady.subscribe(function () {
     // Create and add the webview
     webview = document.createElement('x-ms-webview');
-    webview.getDeferredPermissionRequestById
     webview.style.cssText = 'position: absolute; top:0; left:0; width:100%; height:100%;';
 
     webview.addEventListener("MSWebViewPermissionRequested", function (e) {
