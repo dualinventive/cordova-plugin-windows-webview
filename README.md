@@ -53,7 +53,13 @@ _Note: Some plugins will not automatically work, including original cordova ones
 
 For the following plugins extra entries in the cordova_plugins.js are required, they need to be added underneath the WindowsWebviewExec.js entry.
 
+_Note: Only add these if you use the respective plugin_
+
 #### cordova-plugin-file
+
+**Important!**
+
+You need to **exclude** the original cordova-plugin-file.fileSystems plugin entry and **include** the original cordova-plugin-file.FileSystem plugin entry after the entries below.  	
 
 	{
 		"file": "plugins/cordova-plugin-windows-webview/www/cordova-plugin-file/fileSystems.js",
@@ -67,7 +73,7 @@ For the following plugins extra entries in the cordova_plugins.js are required, 
 		"pluginId": "cordova-plugin-windows-webview",
 		"runs": true
 	},
-
+	
 You should remove all references to proxy files. For example for the device plugin you can remove this:
 
     {
