@@ -155,7 +155,7 @@ Navigates the webview to the specified url.
 
 	Note: To add multiple values to one header, add a header object with the same name and a different value to the array.
 
-- __refresh__: {boolean} Optional. Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url.
+- __refresh__: {boolean: false} Optional. Indicates the webview will be refreshed, clearing the cache, before navigating to the provided url.
 
 - __fingerprint__: {string} Optional. The SHA fingerprint used to check the validity of the SSL certificate of the url. Used to prevent 'Man in the Middle' attacks. For more information refer to: [SSLCertificateChecker-PhoneGap-Plugin](https://github.com/EddyVerbruggen/SSLCertificateChecker-PhoneGap-Plugin)
 
@@ -177,7 +177,7 @@ Indicates whether or not the back button press should be intercepted
 
 	cordova.plugins.WindowsWebview.interceptBackButton(intercept);
 
-- __intercept__: {boolean} Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
+- __intercept__: {boolean: false} Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
 
 ### cordova.plugins.WindowsWebview.onNavigation
 
@@ -240,7 +240,7 @@ Unregisters the provided event handler from the permission requested event.
 
 - __id__: {number} The identifier for the permission request.
 
-- __type__: {string} The identifier for the permission request. [WebViewPermissionType enumeration](https://msdn.microsoft.com/en-us/library/windows/apps/xaml/windows.ui.xaml.controls.webviewpermissiontype.aspx)
+- __type__: {string} The type of permission requested. [WebViewPermissionType enumeration](https://msdn.microsoft.com/en-us/library/windows/apps/xaml/windows.ui.xaml.controls.webviewpermissiontype.aspx)
 
 - __uri__: {string}  The Uniform Resource Identifier (URI) of the content where the permission request originated.
 

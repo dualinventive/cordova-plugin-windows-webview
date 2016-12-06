@@ -181,20 +181,17 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
     ///     The fail callback
     /// </param>
     /// </signature>
+
     window.plugins.sslCertificateChecker.check(
         success,
         function (message) {
             if (message == "CONNECTION_NOT_SECURE") {
                 // There is likely a man in the middle attack going on, be careful!
-                if (typeof fail == 'function') {
-                    fail(message);
-                }
+				executeFailCallback(message);
             } else if (message.indexOf("CONNECTION_FAILED") > -1) {
                 // Check if nr of connection attemps is a number
                 if (isNaN(nrOfConnectionAttempts)) {
-                    if (typeof fail == 'function') {
-                        fail(message);
-                    }
+					executeFailCallback(message);
                 } else {
                     // Made an attempt so decrease the number left to do
                     --nrOfConnectionAttempts;
@@ -205,15 +202,28 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
                             checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, fail);
                         }, 2000);
                     } else {
-                        if (typeof fail == 'function') {
-                            fail(message);
-                        }
+						executeFailCallback(message);
                     }
                 }
             }
         },
         url,
         fingerprint);
+
+	function executeFailCallback(message) {
+		/// <signature>
+		/// <summary>
+		///     Executes the fail callback with the provided message
+		/// </summary>
+		/// <param name='message' type='string'>
+		///     The message to pass along with the callback
+		/// </param>
+		/// </signature>
+
+		if (typeof fail == 'function') {
+			fail(message);
+		}
+	}
 }
 
 function handlePermissionRequest(success, fail, args) {

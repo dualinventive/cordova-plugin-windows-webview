@@ -53,6 +53,16 @@
     };
 
     // IE does not support CustomEvent out of the box, so we need to add it
+
+	/**
+	 * A custom event
+	 *
+	 * @param {string} event The name of the custom event
+	 * @param {{bubbles: boolean, cancelable: boolean, detail: *}} params The parameters to initialize the custom event
+	 *     with
+	 * @return {Event} The created custom event
+	 * @constructor
+	 */
     function CordovaEvent(event, params) {
         params = params || {bubbles: false, cancelable: false, detail: undefined};
         var evt = document.createEvent('CustomEvent');
@@ -91,6 +101,13 @@
         }
     });
 
+	/**
+	 * Adds an event listener
+	 *
+	 * @param {string} type The event type to listen to
+	 * @param {EventListener|Function} listener The listener to add
+	 * @param {boolean} [useCapture = false] Indicates the even is captured
+	 */
     function addEventListener(type, listener, useCapture) {
         document.addEventListener(type, listener, useCapture);
     }
