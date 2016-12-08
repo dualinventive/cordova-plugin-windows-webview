@@ -5,7 +5,9 @@ use of the cordova functionality.
 * [Installation](#installation)
 * [Server configuration](#server-configuration)
   * [Plugin configuration](#plugin-configuration)
-	* [cordova-plugin-file](#cordova-plugin-file)
+    * [Add plugins](#add-plugins)
+    * [Exceptions](#exceptions)
+	  * [cordova-plugin-file](#cordova-plugin-file)
 * [Client configuration](#client-configuration)
 * [Functions](#functions)
   * [navigate](#cordovapluginswindowswebviewnavigate)
@@ -49,13 +51,65 @@ In the cordova_plugins.js you will need to add the WindowsWebviewExec.js as a pl
 		]
 	},
 
+#### Add plugins
+
+To use any of the plugins you downloaded or created, they need to be present on the server and be included in the **cordova_plugins.js** file.
+You should copy the plugin files from the cordova generated project and put them in the same directory structure and relative to the location of your **cordova_plugins.js** file.
+
+
 _Note: Some plugins will not automatically work, including original cordova ones. Report any issues you might find._
+
+For example in the case of the device plugin it would look like this:
+    
+    www/
+    └── js/
+        ├── cordova.js
+        ├── cordova_plugins.js
+        └── plugins/
+            └── cordova-plugin-device/
+                └── www/
+                    └── device.js
+
+And your cordova_plugins.js file would include this:
+    
+    {
+        "file": "plugins/cordova-plugin-device/www/device.js",
+        "id": "cordova-plugin-device.device",
+        "pluginId": "cordova-plugin-device",
+        "clobbers": [
+            "device"
+        ]
+    },
+
+To make sure you are using the correct plugin file, open it and confirm that the file begins with **cordova.define**.
+In the case of the device plugin it would look similar to this:
+
+    cordova.define("cordova-plugin-device.device", function (require, exports, module) {
+
+**Important!**
+
+You should remove all references to proxy files. For example for the device plugin you can remove this:
+
+    {
+        "file": "plugins/cordova-plugin-device/src/windows/DeviceProxy.js",
+        "id": "cordova-plugin-device.DeviceProxy",
+        "pluginId": "cordova-plugin-device",
+        "merges": [
+            ""
+        ]
+    }
+
+You can also remove the actual proxy file located in the plugins directory. In the case of the device plugin you can remove this file:
+
+	plugins/cordova-plugin-device/src/windows/DeviceProxy.js
+
+#### Exceptions
 
 For the following plugins extra entries in the cordova_plugins.js are required, they need to be added underneath the WindowsWebviewExec.js entry.
 
 _Note: Only add these if you use the respective plugin_
 
-#### cordova-plugin-file
+##### cordova-plugin-file
 
 **Important!**
 
@@ -74,31 +128,31 @@ You need to **exclude** the original cordova-plugin-file.fileSystems plugin entr
 		"runs": true
 	},
 	
-You should remove all references to proxy files. For example for the device plugin you can remove this:
-
-    {
-        "file": "plugins/cordova-plugin-device/src/windows/DeviceProxy.js",
-        "id": "cordova-plugin-device.DeviceProxy",
-        "pluginId": "cordova-plugin-device",
-        "merges": [
-            ""
-        ]
-    }
-
-You can also remove the actual proxy file located in the plugins directory. In the case of the device plugin you can remove this file:
-
-	plugins/cordova-plugin-device/src/windows/DeviceProxy.js
 
 ## Client configuration
 
 __Important!__
 
 The website you want to navigate to and use cordova with __must__ be included in the cordova white-list or manually in the ApplicationContentUriRules.
-Your website will not be able to communicate with the native cordova otherwise.
+It also has to use a **secure origin** (https://) Your website will not be able to communicate with the native cordova otherwise. 
 
 You will receive a warning like this if it is not included in the white-list/ApplicationContentUriRules:
 
 	Unable to receive a ScriptNotify event from: 'https://mywebsite.com'. The website attempted to send a ScriptNotify event to the app from a WebView URI that is not included in the ApplicationContentUriRules ...
+
+When developing and using a test server, you will have to create a self-signed certificate and include it manually in the 
+cordova generated Visual Studio projects' .appxmanifest files.
+
+    <Extensions>
+    <Extension Category="windows.certificates">
+      <Certificates>
+        <Certificate StoreName="TrustedPeople" Content="www\certificates\mycertificate.cer" />
+        <SelectionCriteria AutoSelect="true" />
+      </Certificates>
+    </Extension>
+    </Extensions>
+
+
 
 If you want the webview to immediately navigate to your website add the following to the config.xml of your project:
 
