@@ -133,10 +133,10 @@ You need to **exclude** the original cordova-plugin-file.fileSystems plugin entr
 
 __Important!__
 
-The website you want to navigate to and use cordova with __must__ be included in the cordova white-list or manually in the ApplicationContentUriRules.
+The website you want to navigate to and use cordova with __must__ be included in the cordova white-list.
 It also has to use a **secure origin** (https://) Your website will not be able to communicate with the native cordova otherwise. 
 
-You will receive a warning like this if it is not included in the white-list/ApplicationContentUriRules:
+You will receive a warning like this if it is not included in the white-list:
 
 	Unable to receive a ScriptNotify event from: 'https://mywebsite.com'. The website attempted to send a ScriptNotify event to the app from a WebView URI that is not included in the ApplicationContentUriRules ...
 
@@ -186,6 +186,16 @@ If you want the webview to immediately navigate to your website add the followin
 - __preferences__:
  	- __interceptbackbutton__: {boolean} Indicates the back button press should be intercepted. </br>
  	Set this to **true** if you want to listen for the 'backbutton' event. Defaults to **false**.
+
+## Events
+
+### webviewready
+
+Before calling any of the functions below you will want to wait until the webview is ready like so:
+
+    document.addEventListener('webviewready', function(){
+        // Execute your function
+    });
 
 ## Functions
 
@@ -290,7 +300,7 @@ Unregisters the provided event handler from the permission requested event.
 
 ### WWPermissionRequest
 
-####Properties
+#### Properties
 
 - __id__: {number} The identifier for the permission request.
 
@@ -298,7 +308,7 @@ Unregisters the provided event handler from the permission requested event.
 
 - __uri__: {string}  The Uniform Resource Identifier (URI) of the content where the permission request originated.
 
-####Methods
+#### Methods
 
 - __allow__: Grants the requested permission.
 
@@ -310,4 +320,5 @@ Unregisters the provided event handler from the permission requested event.
 
 ## Credits
 
-Incorporates the SSLCertificateChecker-PhoneGap-Plugin by [Eddy Verbruggen](https://github.com/EddyVerbruggen)
+Incorporates the SSLCertificateChecker-PhoneGap-Plugin by [Eddy Verbruggen](https://github.com/EddyVerbruggen).
+Uses JSON.prune.js by [Canop](https://github.com/Canop/JSON.prune).
