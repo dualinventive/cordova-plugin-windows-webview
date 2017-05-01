@@ -183,13 +183,11 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
         function (message) {
             if (message === "CONNECTION_NOT_SECURE") {
                 // There is likely a man in the middle attack going on, be careful!
-                if (typeof fail === 'function') {
-                    fail(message);
-                }
+                onFail(message);
             } else if (message.indexOf("CONNECTION_FAILED") > -1) {
                 // Check if nr of connection attemps is a number
                 if (isNaN(nrOfConnectionAttempts)) {
-                    fail(message);
+                    onFail(message);
                 } else {
                     // Made an attempt so decrease the number left to do
                     --nrOfConnectionAttempts;
@@ -200,13 +198,19 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
                             checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, fail);
                         }, 2000);
                     } else {
-                        fail(message);
+                        onFail(message);
                     }
                 }
             }
         },
         url,
         fingerprint);
+
+    function onFail(message) {
+        if (typeof fail === 'function') {
+            fail(message);
+        }
+    }
 }
 
 function fireBackRequestedEvent(evt) {
