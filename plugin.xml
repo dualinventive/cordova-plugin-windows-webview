@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin id="cordova-plugin-windows-webview"
-        version="0.5.0"
+        version="0.5.1"
         xmlns="http://apache.org/cordova/ns/plugins/1.0">
 	
 	<name>WindowsWebview</name>
@@ -21,6 +21,8 @@
 		<js-module name="prune" src="src/windows/JSON.prune.js">
 			<clobbers target="JSON.prune" />
 		</js-module>
+
+        <hook type="after_prepare" src="scripts/windows/after_prepare.js"/>
 	</platform>
 	
 </plugin>

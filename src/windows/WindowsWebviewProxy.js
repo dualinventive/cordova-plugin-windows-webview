@@ -8,18 +8,13 @@ var webview, backButtonListenerAdded = false;
 
 function navigate(success, fail, args) {
     /// <signature>
-    /// <summary>Navigates the webview to the specified url, with the specified http method and optionally specified headers</summary>
-    ///	<param name='success' type='Function'>
-    ///     Ignore, does nothing
-    /// </param>
-    /// <param name='fail' type='Function'>
-    ///     Ignore, does nothing
-    /// </param>
-    /// <param name='args' type='Array'>
-    ///     An array with the arguments. The first index in the array must contain the url. The second index in the array must contain the Http method.
-    ///     The third index is optional and should contain an array with header objects ie. {name: Name of the header (ex. Cache-Control), value: Value to append to the header (ex. no-cache)}
-    /// </param>
-    /// </signature>
+    /// <summary>Navigates the webview to the specified url, with the specified http method and optionally
+    // specified headers</summary> /	<param name='success' type='Function'> /     Ignore, does nothing /
+    // </param> / <param name='fail' type='Function'> /     Ignore, does nothing / </param> / <param name='args'
+    // type='Array'> /     An array with the arguments. The first index in the array must contain the url. The
+    // second index in the array must contain the Http method. /     The third index is optional and should contain
+    // an array with header objects ie. {name: Name of the header (ex. Cache-Control), value: Value to append to
+    // the header (ex. no-cache)} / </param> / </signature>
 
     // Arguments
     var url = args[0],
@@ -93,10 +88,8 @@ function interceptBackButton(success, fail, args) {
     ///     Ignore, does nothing
     /// </param>
     /// <param name='args' type='Array'>
-    ///     An array with the arguments. The first index in the array is a boolean indicating whether or not to intercept the back button click.
-    ///     Defaults to false.
-    /// </param>
-    /// </signature>
+    ///     An array with the arguments. The first index in the array is a boolean indicating whether or not to
+    // intercept the back button click. /     Defaults to false. / </param> / </signature>
     var intercept = args[0] || false;
 
     if (intercept && backButtonListenerAdded === false) {
@@ -120,9 +113,8 @@ function onNavigation(success, fail, args) {
     ///     The fail callback
     /// </param>
     /// <param name='args' type='Array'>
-    ///     An array with the arguments. The first index in the array indicates the success or fail callback should only be executed once.
-    /// </param>
-    /// </signature>
+    ///     An array with the arguments. The first index in the array indicates the success or fail callback should
+    // only be executed once. / </param> / </signature>
 
     // Check if the webview exists
     if (webview) {
@@ -135,26 +127,31 @@ function onNavigation(success, fail, args) {
     function addListeners() {
         var once = args[0];
 
-        webview.addEventListener('MSWebViewNavigationCompleted', onSuccess);
+        webview.addEventListener('MSWebViewNavigationCompleted', onNavCompleted);
         webview.addEventListener('MSWebViewUnsupportedUriSchemeIdentified', onFail);
         webview.addEventListener('MSWebViewUnviewableContentIdentified', onFail);
 
-        function onSuccess() {
-            onFinished(success);
+        function onNavCompleted(e) {
+            // Check if the navigation was succesful
+            if (e.isSuccess) {
+                onFinished(success, e);
+            } else {
+                onFail(e);
+            }
         }
 
-        function onFail() {
-            onFinished(fail, 'WEBVIEW_NAVIGATION_FAILED');
+        function onFail(e) {
+            onFinished(fail, e);
         }
 
-        function onFinished(callback, message) {
-            if (typeof callback == 'function') {
-                callback(message);
+        function onFinished(callback, event) {
+            if (typeof callback === 'function') {
+                callback(event);
             }
 
             // Remove event listeners if they should fire only once
             if (once) {
-                webview.removeEventListener('MSWebViewNavigationCompleted', onSuccess);
+                webview.removeEventListener('MSWebViewNavigationCompleted', onNavCompleted);
                 webview.removeEventListener('MSWebViewUnsupportedUriSchemeIdentified', onFail);
                 webview.removeEventListener('MSWebViewUnviewableContentIdentified', onFail);
             }
@@ -181,17 +178,16 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
     ///     The fail callback
     /// </param>
     /// </signature>
-
     window.plugins.sslCertificateChecker.check(
         success,
         function (message) {
-            if (message == "CONNECTION_NOT_SECURE") {
+            if (message === "CONNECTION_NOT_SECURE") {
                 // There is likely a man in the middle attack going on, be careful!
-				executeFailCallback(message);
+                onFail(message);
             } else if (message.indexOf("CONNECTION_FAILED") > -1) {
                 // Check if nr of connection attemps is a number
                 if (isNaN(nrOfConnectionAttempts)) {
-					executeFailCallback(message);
+                    onFail(message);
                 } else {
                     // Made an attempt so decrease the number left to do
                     --nrOfConnectionAttempts;
@@ -202,7 +198,7 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
                             checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, fail);
                         }, 2000);
                     } else {
-						executeFailCallback(message);
+                        onFail(message);
                     }
                 }
             }
@@ -210,93 +206,9 @@ function checkSSLCertificate(url, fingerprint, nrOfConnectionAttempts, success, 
         url,
         fingerprint);
 
-	function executeFailCallback(message) {
-		/// <signature>
-		/// <summary>
-		///     Executes the fail callback with the provided message
-		/// </summary>
-		/// <param name='message' type='string'>
-		///     The message to pass along with the callback
-		/// </param>
-		/// </signature>
-
-		if (typeof fail == 'function') {
-			fail(message);
-		}
-	}
-}
-
-function handlePermissionRequest(success, fail, args) {
-    /// <signature>
-    /// <summary>
-    ///     Handles the permission request  with the provided id by allowing or denying it depending on the provided 'allow' argument
-    /// </summary>
-    /// <param name='success' type='Function'>
-    ///     The success callback
-    /// </param>
-    /// <param name='fail' type='Function'>
-    ///     The fail callback
-    /// </param>
-    /// <param name='args' type='Array'>
-    ///     An array with the arguments. The first index in the array is the id of the permission request. The second index is a boolean that indicates the request is to be allowed or denied.
-    /// </param>
-    /// </signature>
-
-    var id = args[0],
-        allow = args[1];
-
-    var permissionRequest = webview.getDeferredPermissionRequestById(id);
-    if (permissionRequest) {
-        if (allow) {
-            permissionRequest.allow();
-        } else {
-            permissionRequest.deny();
-        }
-
-        if (typeof success == 'function') {
-            success();
-        }
-    } else {
-        if (typeof fail == 'function') {
-            fail();
-        }
-    }
-}
-
-function getPermissionRequests(success, fail) {
-    /// <signature>
-    /// <summary>
-    ///     Returns all the outstanding permission requests
-    /// </summary>
-    /// <param name='success' type='Function'>
-    ///     The success callback
-    /// </param>
-    /// <param name='fail' type='Function'>
-    ///     The fail callback
-    /// </param>
-    /// </signature>
-    var permissionRequests = webview.getDeferredPermissionRequests();
-
-    if (permissionRequests) {
-        if (typeof success == 'function') {
-            var plainPermissionRequests = [];
-
-            for (var p = 0; p < permissionRequests.length; p++) {
-                var permissionRequest = permissionRequests[p];
-                var plainPermissionRequest = {
-                    id: permissionRequest.id,
-                    type: permissionRequest.type,
-                    uri: permissionRequest.uri
-                };
-
-                plainPermissionRequests.push(plainPermissionRequest);
-            }
-
-            success(plainPermissionRequests);
-        }
-    } else {
-        if (typeof fail == 'function') {
-            fail();
+    function onFail(message) {
+        if (typeof fail === 'function') {
+            fail(message);
         }
     }
 }
@@ -308,28 +220,13 @@ function fireBackRequestedEvent(evt) {
     ///     The back button clicked event
     /// </param>
     /// </signature>
-    invokeScript('fireCordovaEvent', { eventName: 'backrequested', args: { detail: evt } });
+    invokeScript('fireCordovaEvent', {eventName: 'backrequested', args: {detail: evt}});
 }
 
 channel.onDeviceReady.subscribe(function () {
     // Create and add the webview
     webview = document.createElement('x-ms-webview');
     webview.style.cssText = 'position: absolute; top:0; left:0; width:100%; height:100%;';
-
-    webview.addEventListener("MSWebViewPermissionRequested", function (e) {
-        // Always defer permission requests
-        e.permissionRequest.defer();
-
-        // Create plain object of the permission request
-        var plainPermissionRequest = {
-            id: e.permissionRequest.id,
-            type: e.permissionRequest.type,
-            uri: e.permissionRequest.uri
-        };
-
-        // Fire the native event in the webview
-        invokeScript('fireCordovaEvent', {eventName: 'wwPermissionRequested', args: plainPermissionRequest});
-    });
 
     document.body.appendChild(webview);
 
@@ -356,7 +253,10 @@ channel.onDeviceReady.subscribe(function () {
 
     document.addEventListener("activated", function (e) {
         // Fire the native event in the webview
-        invokeScript('fireCordovaEvent', {eventName: 'activated', args: {detail: {type: e.type, arguments: e.args}}});
+        invokeScript('fireCordovaEvent', {
+            eventName: 'activated',
+            args: {detail: {type: e.type, arguments: e.args}}
+        });
     });
 
     // Add listener for webview sending messages
@@ -423,7 +323,7 @@ channel.onDeviceReady.subscribe(function () {
             var value = interceptBackButton.getAttribute('value');
 
             // Add 'backbutton' event listener if set to true
-            if (value == "true") {
+            if (value === "true") {
                 document.addEventListener("backbutton", fireBackRequestedEvent);
                 backButtonListenerAdded = true;
             }
@@ -472,13 +372,12 @@ function invokeScript(script, args) {
     ///     The script to execute. Note: Must be in the global scope.
     /// </param>
     /// <param name='fail' type='*'>
-    ///     The arguments to pass to the function. Must be JSON stringifiable. Note: Should be JSON parsed on the other end.
-    /// </param>
-    /// </signature>
+    ///     The arguments to pass to the function. Must be JSON stringifiable. Note: Should be JSON parsed on the
+    // other end. / </param> / </signature>
 
     // Only a single string can be passed as an argument
     var invoke = webview.invokeScriptAsync(script, JSON.prune(args));
-    invoke.onerror = function (e) {
+    invoke.onerror = function () {
         utils.alert("[ERROR] Error invoking webview function: " + script);
     };
 
@@ -512,9 +411,7 @@ module.exports = {
     navigate: navigate,
     goBack: goBack,
     interceptBackButton: interceptBackButton,
-    onNavigation: onNavigation,
-    handlePermissionRequest: handlePermissionRequest,
-    getPermissionRequests: getPermissionRequests
+    onNavigation: onNavigation
 };
 
 require("cordova/exec/proxy").add("WindowsWebview", module.exports);
