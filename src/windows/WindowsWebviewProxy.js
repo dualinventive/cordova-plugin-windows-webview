@@ -376,7 +376,7 @@ function invokeScript(script, args) {
     // other end. / </param> / </signature>
 
     // Only a single string can be passed as an argument
-    var invoke = webview.invokeScriptAsync(script, JSON.prune(args));
+    var invoke = webview.invokeScriptAsync(script, JSON.prune(args, {allProperties: true}));
     invoke.onerror = function () {
         utils.alert("[ERROR] Error invoking webview function: " + script);
     };

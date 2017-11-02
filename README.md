@@ -133,7 +133,10 @@ You need to **exclude** the original cordova-plugin-file.fileSystems plugin entr
 
 __Important!__
 
-The website you want to navigate to and use cordova with __must__ be included in the cordova white-list.
+The website you want to navigate to and use cordova with __must__ be included in the cordova white-list like so:
+
+	<access origin="https://*.google.com/*" subdomains="true" />
+
 It also has to use a **secure origin** (https://) Your website will not be able to communicate with the native cordova otherwise. 
 
 You will receive a warning like this if it is not included in the white-list:

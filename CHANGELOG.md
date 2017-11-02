@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.2] - 2017-11-02
+### Fixes
+- Removed the `after_prepare.js` hook as it wasn't necessary.
+- Fixed some properties not being included in the message sent back to the browser.
+
 ## [0.5.1] - 2017-04-26
 
 ### Improvements
