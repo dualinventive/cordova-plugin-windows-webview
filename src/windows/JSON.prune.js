@@ -119,15 +119,21 @@
 				}
 				seen.push(value);
 				partial = [];
-				if (Object.prototype.toString.apply(value) === '[object Array]') {
-					length = Math.min(value.length, arrayMaxLength);
-					for (i = 0; i < length; i += 1) {
-						partial[i] = str(i, value, depthDecr-1) || 'null';
-					}
-					v = '[' + partial.join(',') + ']';
-					if (replacer && value.length>arrayMaxLength) return replacer(value, v, false);
-					return v;
-				}
+
+                // Convert to an array because ArrayBuffer doesn't serialize properly
+                if (Object.prototype.toString.apply(value) === '[object ArrayBuffer]') {
+                    value = Array.apply(null, new Uint8Array(value));
+                }
+
+                if (Object.prototype.toString.apply(value) === '[object Array]') {
+                    // Removed length limit because files for instance would only be partially read.
+                    for (i = 0; i < value.length; i += 1) {
+                        partial[i] = str(i, value, depthDecr - 1) || 'null';
+                    }
+
+                    v = '[' + partial.join(',') + ']';
+                    return v;
+                }
 				iterator(value, function(k) {
 					try {
 						v = str(k, value, depthDecr-1);
