@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-windows-webview",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Cordova Windows Webview Plugin",
   "cordova": {
     "id": "cordova-plugin-windows-webview",
