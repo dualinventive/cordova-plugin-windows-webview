@@ -20,7 +20,7 @@
 	var DEFAULT_PRUNED_VALUE = '"-pruned-"';
 	var seen; // Same variable used for all stringifications
 	var iterator; // either forEachEnumerableOwnProperty, forEachEnumerableProperty or forEachProperty
-	
+
 	// iterates on enumerable own properties (default behavior)
 	var forEachEnumerableOwnProperty = function(obj, callback) {
 		for (var k in obj) {
@@ -122,7 +122,11 @@
 
                 // Convert to an array because ArrayBuffer doesn't serialize properly
                 if (Object.prototype.toString.apply(value) === '[object ArrayBuffer]') {
-                    value = Array.apply(null, new Uint8Array(value));
+					if (typeof Array.from === "function") {
+						value = Array.from(new Uint8Array(value));
+					} else {
+						value = Array.prototype.slice.call(new Uint8Array(value));
+					}
                 }
 
                 if (Object.prototype.toString.apply(value) === '[object Array]') {
@@ -138,9 +142,9 @@
 					try {
 						v = str(k, value, depthDecr-1);
 						if (v) partial.push(quote(k) + ':' + v);
-					} catch (e) { 
+					} catch (e) {
 						// this try/catch due to forbidden accessors on some objects
-					}				
+					}
 				});
 				return '{' + partial.join(',') + '}';
 			case 'function':
@@ -150,7 +154,7 @@
 		}
 		return str('', {'': value}, depthDecr);
 	};
-	
+
 	prune.log = function() {
 		console.log.apply(console, Array.prototype.map.call(arguments, function(v) {
 			return JSON.parse(JSON.prune(v));
