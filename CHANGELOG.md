@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [0.5.4] - 2019-02-25
+### Fixes
+- \#2: Fixed issue that caused a fatal error when converting an ArrayBuffer to an Array. 
+
 ## [0.5.3] - 2017-11-13
 ### Fixes
 - Fixed issue causing files to not be read properly when using `cordova-plugin-file`.
@@ -14,7 +18,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed some properties not being included in the message sent back to the browser.
 
 ## [0.5.1] - 2017-04-26
-
 ### Improvements
 - 'onNavigation' and 'navigate' function callbacks are now passed an event object that includes the error reason.
 - White listed urls are now automatically added to Windows 8.1 and Windows Phone 8.1 builds.
